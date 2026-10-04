@@ -65,14 +65,14 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="bg-white border-b border-slate-200 px-8 py-6 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-600 text-sm mt-1">
+      <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white px-8 py-8 shadow-lg">
+        <h1 className="text-4xl font-bold">Dashboard</h1>
+        <p className="text-blue-100 text-base mt-2">
           Resumen general del negocio
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
         {/* Métricas */}
         <div className="grid grid-cols-4 gap-6 mb-8">
           <MetricCard
@@ -109,11 +109,12 @@ export default function Dashboard() {
         )}
 
         {/* Últimas Ventas */}
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-            <h3 className="text-lg font-semibold text-slate-900">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+          <div className="px-8 py-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+            <h3 className="text-xl font-bold text-slate-900">
               Últimas Ventas
             </h3>
+            <p className="text-slate-600 text-sm mt-1">Transacciones recientes</p>
           </div>
           <Table
             columns={[
