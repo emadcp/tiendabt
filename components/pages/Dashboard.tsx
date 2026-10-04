@@ -12,69 +12,49 @@ export default function Dashboard() {
     costo_mercaderia: 0,
     ganancia_neta: 0,
   });
-
   const [ultimas_ventas, setUltimasVentas] = useState([]);
   const [alertas_stock, setAlertasStock] = useState([]);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Cargar ventas
-        const ventasRes = await fetch("/api/ventas");
-        const ventasData = await ventasRes.json();
-        const ventas = Array.isArray(ventasData) ? ventasData : [];
-
-        // Cargar gastos
-        const gastosRes = await fetch("/api/gastos");
-        const gastosData = await gastosRes.json();
-        const gastos = Array.isArray(gastosData) ? gastosData : [];
-
-        // Cargar productos
-        const productosRes = await fetch("/api/productos");
-        const productosData = await productosRes.json();
-        const productos = Array.isArray(productosData) ? productosData : [];
-
-        // Calcular métricas
-        const ingresos = Array.isArray(ventas) ? ventas.reduce(
-          (sum: number, v: any) => sum + parseFloat(v.subtotal),
-          0
-        ) : 0;
-        const gastos_total = Array.isArray(gastos) ? gastos.reduce(
-          (sum: number, g: any) => sum + parseFloat(g.monto),
-          0
-        ) : 0;
-        const costo_mercat = Array.isArray(ventas) && Array.isArray(productos) ? ventas.reduce((sum: number, v: any) => {
-          const prod = productos.find((p: any) => p.id === v.producto_id);
-          return sum + parseFloat(prod?.costo_unitario_actual || 0) * v.cantidad;
-        }, 0) : 0;
-
-        setMetricas({
-          ingresos,
-          gastos: gastos_total,
-          costo_mercaderia: costo_mercat,
-          ganancia_neta: ingresos - gastos_total - costo_mercat,
-        });
-
-        setUltimasVentas(Array.isArray(ventas) ? ventas.slice(0, 5) : []);
-
-        // Alertas de stock bajo
-        const alertas = Array.isArray(productos) ? productos.filter(
-          (p: any) => p.stock_actual <= p.stock_minimo
-        ) : [];
-        setAlertasStock(alertas);
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-        setMetricas({
-          ingresos: 0,
-          gastos: 0,
-          costo_mercaderia: 0,
-          ganancia_neta: 0,
-        });
-      }
-    };
-
     loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const ventasRes = await fetch("/api/ventas");
+      const ventasData = await ventasRes.json();
+      const ventas = Array.isArray(ventasData) ? ventasData : [];
+
+      const gastosRes = await fetch("/api/gastos");
+      const gastosData = await gastosRes.json();
+      const gastos = Array.isArray(gastosData) ? gastosData : [];
+
+      const productosRes = await fetch("/api/productos");
+      const productosData = await productosRes.json();
+      const productos = Array.isArray(productosData) ? productosData : [];
+
+      const ingresos = ventas.reduce((sum: number, v: any) => sum + (parseFloat(v?.subtotal) || 0), 0);
+      const gastos_total = gastos.reduce((sum: number, g: any) => sum + (parseFloat(g?.monto) || 0), 0);
+      const costo_mercat = ventas.reduce((sum: number, v: any) => {
+        const prod = productos.find((p: any) => p?.id === v?.producto_id);
+        return sum + ((parseFloat(prod?.costo_unitario_actual) || 0) * (v?.cantidad || 0));
+      }, 0);
+
+      setMetricas({
+        ingresos,
+        gastos: gastos_total,
+        costo_mercaderia: costo_mercat,
+        ganancia_neta: ingresos - gastos_total - costo_mercat,
+      });
+      setUltimasVentas(ventas.slice(0, 5));
+      setAlertasStock(productos.filter((p: any) => (p?.stock_actual || 0) <= (p?.stock_minimo || 0)));
+    } catch (error) {
+      console.error("Error:", error);
+      setMetricas({ ingresos: 0, gastos: 0, costo_mercaderia: 0, ganancia_neta: 0 });
+      setUltimasVentas([]);
+      setAlertasStock([]);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

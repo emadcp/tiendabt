@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Upload } from "lucide-react";
 
 export default function Ventas() {
-  const [ventas, setVentas] = useState([]);
+  const [ventas, setVentas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,10 +17,11 @@ export default function Ventas() {
       const data = await res.json();
       setVentas(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error loading ventas:", error);
+      console.error("Error:", error);
       setVentas([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

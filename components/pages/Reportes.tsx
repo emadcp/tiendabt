@@ -27,16 +27,16 @@ export default function Reportes() {
         const productos = Array.isArray(productosData) ? productosData : [];
 
         const ingresos = ventas.reduce(
-          (sum: number, v: any) => sum + parseFloat(v.subtotal),
+          (sum: number, v: any) => sum + (parseFloat(v?.subtotal) || 0),
           0
         );
         const gastos_total = gastos.reduce(
-          (sum: number, g: any) => sum + parseFloat(g.monto),
+          (sum: number, g: any) => sum + (parseFloat(g?.monto) || 0),
           0
         );
         const costo_mercat = ventas.reduce((sum: number, v: any) => {
-          const prod = productos.find((p: any) => p.id === v.producto_id);
-          return sum + parseFloat(prod?.costo_unitario_actual || 0) * v.cantidad;
+          const prod = productos.find((p: any) => p?.id === v?.producto_id);
+          return sum + ((parseFloat(prod?.costo_unitario_actual) || 0) * (v?.cantidad || 0));
         }, 0);
 
       const ganancia = ingresos - gastos_total - costo_mercat;
@@ -51,6 +51,13 @@ export default function Reportes() {
         });
       } catch (error) {
         console.error("Error loading reportes data:", error);
+        setDatos({
+          ingresos: 0,
+          gastos: 0,
+          costo_mercat: 0,
+          ganancia: 0,
+          rentabilidad: 0,
+        });
       }
     };
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
 export default function Gastos() {
-  const [gastos, setGastos] = useState([]);
+  const [gastos, setGastos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,17 +17,18 @@ export default function Gastos() {
       const data = await res.json();
       setGastos(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error loading gastos:", error);
+      console.error("Error:", error);
       setGastos([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const gastosPorTipo = Array.isArray(gastos) ? gastos.reduce((acc: any, g: any) => {
-    const tipo = g.tipo_gasto;
-    acc[tipo] = (acc[tipo] || 0) + parseFloat(g.monto);
+  const gastosPorTipo = gastos.reduce((acc: any, g: any) => {
+    const tipo = g?.tipo_gasto || "Otro";
+    acc[tipo] = (acc[tipo] || 0) + (parseFloat(g?.monto) || 0);
     return acc;
-  }, {}) : {};
+  }, {});
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
