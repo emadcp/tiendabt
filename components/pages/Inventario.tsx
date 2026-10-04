@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import ProductoModal from "@/components/modals/ProductoModal";
 
 export default function Inventario() {
-  const [productos, setProductos] = useState([]);
+  const [productos, setProductos] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 

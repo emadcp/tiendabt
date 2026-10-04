@@ -12,8 +12,8 @@ export default function Dashboard() {
     costo_mercaderia: 0,
     ganancia_neta: 0,
   });
-  const [ultimas_ventas, setUltimasVentas] = useState([]);
-  const [alertas_stock, setAlertasStock] = useState([]);
+  const [ultimas_ventas, setUltimasVentas] = useState<any[]>([]);
+  const [alertas_stock, setAlertasStock] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
