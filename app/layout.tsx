@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "TiendaBT - Sistema de Gestión",
   description: "Sistema de gestión de inventario, ventas y gastos para TiendaBT",
+  authors: [{ name: "TiendaBT" }],
 };
 
 export default function RootLayout({
