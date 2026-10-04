@@ -35,7 +35,7 @@ model PrecioCanal {
   producto_id     Int
   canal           String
   precio_venta    Decimal @db.Decimal(15, 2)
-  margen_pct      Decimal @db.Decimal(5, 2)?
+  margen_pct      Decimal? @db.Decimal(5, 2)
   vigente_desde   DateTime @default(now())
   vigente_hasta   DateTime?
   createdAt       DateTime @default(now())
@@ -84,8 +84,8 @@ model Venta {
   costo_envio       Decimal @db.Decimal(15, 2) @default(0)
   costo_empaque     Decimal @db.Decimal(15, 2) @default(0)
   otros_gastos      Decimal @db.Decimal(15, 2) @default(0)
-  ganancia_bruta    Decimal @db.Decimal(15, 2)?
-  ganancia_neta     Decimal @db.Decimal(15, 2)?
+  ganancia_bruta    Decimal? @db.Decimal(15, 2)
+  ganancia_neta     Decimal? @db.Decimal(15, 2)
   fecha_venta       DateTime
   estado            String  @default("completada")
   referencia_ext    String?
