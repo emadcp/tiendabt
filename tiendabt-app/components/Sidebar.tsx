@@ -39,8 +39,16 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   return (
     <div className="w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white p-8 overflow-y-auto">
       <div className="mb-12">
-        <h1 className="text-3xl font-bold">TiendaBT</h1>
-        <p className="text-sm text-blue-200 mt-1">Sistema de Gestión</p>
+        {/* Logo */}
+        <div className="mb-6 bg-white rounded-lg p-4 flex items-center justify-center">
+          <img
+            src="/images/logo.svg"
+            alt="TiendaBT Logo"
+            className="w-full max-h-24 object-contain"
+          />
+        </div>
+        <h1 className="text-3xl font-bold text-center">TiendaBT</h1>
+        <p className="text-sm text-blue-200 mt-1 text-center">Sistema de Gestión</p>
       </div>
 
       {categories.map((category) => (

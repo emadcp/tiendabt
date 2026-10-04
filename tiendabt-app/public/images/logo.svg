@@ -1,0 +1,41 @@
+<svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="80" fill="#ffffff" rx="8"/>
+
+  <!-- Dog -->
+  <g transform="translate(30, 25)">
+    <!-- Head -->
+    <circle cx="12" cy="12" r="8" fill="#D4A574"/>
+    <!-- Ears -->
+    <ellipse cx="6" cy="4" rx="3" ry="5" fill="#D4A574"/>
+    <ellipse cx="18" cy="4" rx="3" ry="5" fill="#D4A574"/>
+    <!-- Eyes -->
+    <circle cx="10" cy="11" r="1.5" fill="#000"/>
+    <circle cx="14" cy="11" r="1.5" fill="#000"/>
+    <!-- Nose -->
+    <circle cx="12" cy="14" r="1" fill="#000"/>
+    <!-- Mouth -->
+    <path d="M 12 14 Q 10 16 8 15" stroke="#000" stroke-width="1" fill="none"/>
+  </g>
+
+  <!-- Cat -->
+  <g transform="translate(50, 25)">
+    <!-- Head -->
+    <circle cx="12" cy="12" r="8" fill="#808080"/>
+    <!-- Ears -->
+    <polygon points="8,2 6,8 10,7" fill="#808080"/>
+    <polygon points="16,2 14,7 18,8" fill="#808080"/>
+    <!-- Eyes -->
+    <circle cx="10" cy="11" r="1.5" fill="#000"/>
+    <circle cx="14" cy="11" r="1.5" fill="#000"/>
+    <!-- Nose -->
+    <polygon points="12,14 11,15 13,15" fill="#FF69B4"/>
+    <!-- Mouth -->
+    <path d="M 12 14 Q 11 16 9 15" stroke="#000" stroke-width="1" fill="none"/>
+  </g>
+
+  <!-- Text -->
+  <text x="100" y="45" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#001A4D">
+    TiendaBT
+  </text>
+</svg>
