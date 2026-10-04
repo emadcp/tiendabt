@@ -52,58 +52,58 @@ export default function Reportes() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="bg-white border-b border-slate-200 px-8 py-6 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Reportes</h1>
+      <div className="bg-white border-b border-slate-200 px-8 py-6">
+        <h1 className="text-2xl font-bold text-slate-900">Reportes</h1>
         <p className="text-slate-600 text-sm mt-1">
           Análisis de rentabilidad
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-8 bg-white">
         {/* Métricas principales */}
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg border border-slate-200">
-            <p className="text-sm font-semibold text-slate-700 uppercase mb-2">
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+            <p className="text-xs font-semibold text-slate-700 uppercase mb-2">
               Ingresos
             </p>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-slate-900">
               ${datos.ingresos.toLocaleString("es-AR")}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg border border-slate-200">
-            <p className="text-sm font-semibold text-slate-700 uppercase mb-2">
+          <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+            <p className="text-xs font-semibold text-slate-700 uppercase mb-2">
               Costo Mercadería
             </p>
-            <p className="text-3xl font-bold text-orange-600">
+            <p className="text-2xl font-bold text-slate-900">
               ${datos.costo_mercat.toLocaleString("es-AR")}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg border border-slate-200">
-            <p className="text-sm font-semibold text-slate-700 uppercase mb-2">
+          <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+            <p className="text-xs font-semibold text-slate-700 uppercase mb-2">
               Gastos Operativos
             </p>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-2xl font-bold text-slate-900">
               ${datos.gastos.toLocaleString("es-AR")}
             </p>
           </div>
         </div>
 
         {/* Ganancia Neta */}
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 p-8 rounded-lg mb-8">
-          <p className="text-sm font-semibold text-blue-700 uppercase mb-2">
+        <div className="bg-slate-900 text-white border border-slate-800 p-8 rounded-lg mb-8">
+          <p className="text-xs font-semibold text-slate-300 uppercase mb-2">
             Ganancia Neta Final
           </p>
-          <p className="text-4xl font-bold text-blue-600">
+          <p className="text-4xl font-bold">
             ${datos.ganancia.toLocaleString("es-AR")}
           </p>
-          <p className="text-lg text-blue-600 font-semibold mt-2">
+          <p className="text-lg font-semibold mt-3 text-slate-200">
             Rentabilidad: {datos.rentabilidad.toFixed(2)}%
           </p>
         </div>
 
         {/* Resumen */}
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-6">
+          <h3 className="text-base font-semibold text-slate-900 mb-6">
             Resumen Financiero
           </h3>
           <div className="space-y-3">

@@ -13,11 +13,11 @@ export default function Table({ columns, data }: TableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-300">
+          <tr className="bg-slate-50 border-b border-slate-200">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider"
               >
                 {col.label}
               </th>
@@ -38,9 +38,7 @@ export default function Table({ columns, data }: TableProps) {
             data.map((row, idx) => (
               <tr
                 key={idx}
-                className={`border-b border-slate-100 transition-colors ${
-                  idx % 2 === 0 ? "bg-white" : "bg-slate-50"
-                } hover:bg-blue-50`}
+                className="border-b border-slate-100 transition-colors hover:bg-slate-50"
               >
                 {columns.map((col) => (
                   <td key={col.key} className="px-6 py-4 text-slate-700">

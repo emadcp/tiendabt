@@ -9,35 +9,43 @@ interface MetricCardProps {
 export default function MetricCard({ label, value, color }: MetricCardProps) {
   const colorConfig = {
     green: {
-      bg: "bg-emerald-50",
-      border: "border-emerald-200",
-      text: "text-emerald-700",
+      bg: "bg-white",
+      border: "border-slate-200",
+      accentColor: "from-emerald-500/10 to-emerald-500/5",
+      text: "text-slate-900",
+      label: "text-slate-600",
       iconColor: "text-emerald-600",
-      accent: "bg-emerald-100",
+      accent: "bg-emerald-50",
       icon: TrendingUp,
     },
     red: {
-      bg: "bg-red-50",
-      border: "border-red-200",
-      text: "text-red-700",
+      bg: "bg-white",
+      border: "border-slate-200",
+      accentColor: "from-red-500/10 to-red-500/5",
+      text: "text-slate-900",
+      label: "text-slate-600",
       iconColor: "text-red-600",
-      accent: "bg-red-100",
+      accent: "bg-red-50",
       icon: Wallet,
     },
     blue: {
-      bg: "bg-blue-50",
-      border: "border-blue-200",
-      text: "text-blue-700",
+      bg: "bg-white",
+      border: "border-slate-200",
+      accentColor: "from-blue-500/10 to-blue-500/5",
+      text: "text-slate-900",
+      label: "text-slate-600",
       iconColor: "text-blue-600",
-      accent: "bg-blue-100",
+      accent: "bg-blue-50",
       icon: Zap,
     },
     orange: {
-      bg: "bg-orange-50",
-      border: "border-orange-200",
-      text: "text-orange-700",
+      bg: "bg-white",
+      border: "border-slate-200",
+      accentColor: "from-orange-500/10 to-orange-500/5",
+      text: "text-slate-900",
+      label: "text-slate-600",
       iconColor: "text-orange-600",
-      accent: "bg-orange-100",
+      accent: "bg-orange-50",
       icon: ShoppingCart,
     },
   };
@@ -46,16 +54,16 @@ export default function MetricCard({ label, value, color }: MetricCardProps) {
   const Icon = config.icon;
 
   return (
-    <div className={`${config.bg} rounded-xl border ${config.border} p-6 shadow-md hover:shadow-lg transition-shadow`}>
-      <div className="flex items-center justify-between mb-4">
-        <p className={`text-xs font-bold ${config.text} uppercase tracking-wider`}>
+    <div className={`${config.bg} rounded-lg border ${config.border} p-6 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br ${config.accentColor}`}>
+      <div className="flex items-center justify-between mb-3">
+        <p className={`text-xs font-semibold ${config.label} uppercase tracking-wider`}>
           {label}
         </p>
-        <div className={`${config.accent} p-2 rounded-lg`}>
-          <Icon size={20} className={config.iconColor} />
+        <div className={`${config.accent} p-2 rounded-md`}>
+          <Icon size={18} className={config.iconColor} />
         </div>
       </div>
-      <p className={`text-3xl font-bold ${config.text}`}>{value}</p>
+      <p className={`text-2xl font-bold ${config.text}`}>{value}</p>
     </div>
   );
 }

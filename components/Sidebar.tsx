@@ -37,26 +37,26 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const categories = ["Principal", "Operaciones", "Análisis"];
 
   return (
-    <div className="w-80 bg-gradient-to-b from-blue-900 to-blue-800 text-white p-8 overflow-y-auto">
-      <div className="mb-12">
+    <div className="w-64 bg-slate-900 text-white p-6 overflow-y-auto border-r border-slate-800">
+      <div className="mb-10">
         {/* Logo */}
-        <div className="mb-6 bg-white rounded-lg p-4 flex items-center justify-center">
+        <div className="mb-4 bg-slate-800 rounded-lg p-3 flex items-center justify-center">
           <img
             src="/images/logo.svg"
             alt="TiendaBT Logo"
-            className="w-full max-h-24 object-contain"
+            className="w-full max-h-16 object-contain"
           />
         </div>
-        <h1 className="text-3xl font-bold text-center">TiendaBT</h1>
-        <p className="text-sm text-blue-200 mt-1 text-center">Sistema de Gestión</p>
+        <h1 className="text-lg font-semibold text-center text-white">TiendaBT</h1>
+        <p className="text-xs text-slate-400 mt-1 text-center">Gestión Comercial</p>
       </div>
 
       {categories.map((category) => (
-        <div key={category} className="mb-8">
-          <p className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-3">
+        <div key={category} className="mb-6">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 pl-1">
             {category}
           </p>
-          <nav className="space-y-2">
+          <nav className="space-y-1">
             {menuItems
               .filter((item) => item.category === category)
               .map((item) => {
@@ -65,13 +65,13 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors ${
                       activeTab === item.id
-                        ? "bg-white text-blue-900 font-semibold shadow-lg"
-                        : "text-blue-100 hover:bg-blue-700"
+                        ? "bg-slate-700 text-white font-medium"
+                        : "text-slate-300 hover:text-white hover:bg-slate-800"
                     }`}
                   >
-                    <Icon size={20} />
+                    <Icon size={18} className="flex-shrink-0" />
                     <span>{item.label}</span>
                   </button>
                 );

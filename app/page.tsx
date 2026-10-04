@@ -29,7 +29,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-white">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       {renderContent()}
     </div>

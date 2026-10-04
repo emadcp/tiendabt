@@ -26,17 +26,17 @@ export default function Gastos() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="bg-white border-b border-slate-200 px-8 py-6 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Control de Gastos</h1>
+      <div className="bg-white border-b border-slate-200 px-8 py-6">
+        <h1 className="text-2xl font-bold text-slate-900">Control de Gastos</h1>
         <p className="text-slate-600 text-sm mt-1">
           Discriminación de gastos por tipo
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-8 bg-white">
         <div className="mb-6">
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
-            <Plus size={20} />
+          <button className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium transition">
+            <Plus size={18} />
             Agregar Gasto
           </button>
         </div>
@@ -46,12 +46,12 @@ export default function Gastos() {
           {Object.entries(gastosPorTipo).map(([tipo, monto]) => (
             <div
               key={tipo}
-              className="bg-white rounded-lg border border-slate-200 p-4 text-center"
+              className="bg-slate-50 rounded-lg border border-slate-200 p-4 text-center"
             >
               <p className="text-sm font-semibold text-slate-700 mb-2">
                 {tipo}
               </p>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-slate-900">
                 ${(monto as number).toLocaleString("es-AR")}
               </p>
             </div>
@@ -60,8 +60,8 @@ export default function Gastos() {
 
         {/* Tabla de gastos */}
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-            <h3 className="text-lg font-semibold text-slate-900">
+          <div className="px-6 py-4 border-b border-slate-200">
+            <h3 className="text-base font-semibold text-slate-900">
               Detalle de Gastos
             </h3>
           </div>
