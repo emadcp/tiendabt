@@ -1,0 +1,140 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Producto {
+  id                    Int     @id @default(autoincrement())
+  nombre                String
+  sku                   String  @unique
+  descripcion           String?
+  categoria             String?
+  imagen_url            String?
+  url_mercado_libre     String?
+  url_tienda_propia     String?
+  stock_actual          Int     @default(0)
+  stock_minimo          Int     @default(5)
+  costo_unitario_actual Decimal @db.Decimal(15, 2)
+  costo_unitario_prom   Decimal @db.Decimal(15, 2)
+  activo                Boolean @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  precios_canal PrecioCanal[]
+  compras       Compra[]
+  ventas        Venta[]
+  alertas       AlertaStock[]
+}
+
+model PrecioCanal {
+  id              Int     @id @default(autoincrement())
+  producto_id     Int
+  canal           String
+  precio_venta    Decimal @db.Decimal(15, 2)
+  margen_pct      Decimal @db.Decimal(5, 2)?
+  vigente_desde   DateTime @default(now())
+  vigente_hasta   DateTime?
+  createdAt       DateTime @default(now())
+
+  producto Producto @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  @@unique([producto_id, canal])
+}
+
+model Proveedor {
+  id       Int     @id @default(autoincrement())
+  nombre   String
+  contacto String?
+  email    String?
+  telefono String?
+  pais     String?
+  activo   Boolean @default(true)
+
+  compras Compra[]
+}
+
+model Compra {
+  id                    Int     @id @default(autoincrement())
+  producto_id           Int
+  proveedor_id          Int?
+  proveedor_nombre      String
+  cantidad              Int
+  precio_unitario       Decimal @db.Decimal(15, 2)
+  costo_total           Decimal @db.Decimal(15, 2)
+  fecha_compra          DateTime
+  referencia_proveedor  String?
+  estado                String  @default("completada")
+  createdAt             DateTime @default(now())
+
+  producto Producto @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  proveedor Proveedor? @relation(fields: [proveedor_id], references: [id])
+}
+
+model Venta {
+  id                Int     @id @default(autoincrement())
+  producto_id       Int
+  canal             String
+  cantidad          Int
+  precio_unitario   Decimal @db.Decimal(15, 2)
+  subtotal          Decimal @db.Decimal(15, 2)
+  comision_canal    Decimal @db.Decimal(15, 2) @default(0)
+  costo_envio       Decimal @db.Decimal(15, 2) @default(0)
+  costo_empaque     Decimal @db.Decimal(15, 2) @default(0)
+  otros_gastos      Decimal @db.Decimal(15, 2) @default(0)
+  ganancia_bruta    Decimal @db.Decimal(15, 2)?
+  ganancia_neta     Decimal @db.Decimal(15, 2)?
+  fecha_venta       DateTime
+  estado            String  @default("completada")
+  referencia_ext    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  producto     Producto @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  devoluciones Devolucion[]
+  gastos       GastoOperativo[]
+}
+
+model Devolucion {
+  id                Int     @id @default(autoincrement())
+  venta_id          Int
+  cantidad_devuelta Int
+  motivo            String?
+  monto_reembolso   Decimal @db.Decimal(15, 2)
+  fecha_devolucion  DateTime
+  estado            String  @default("pendiente")
+  createdAt         DateTime @default(now())
+
+  venta Venta @relation(fields: [venta_id], references: [id], onDelete: Cascade)
+}
+
+model GastoOperativo {
+  id              Int     @id @default(autoincrement())
+  tipo_gasto      String
+  descripcion     String
+  monto           Decimal @db.Decimal(15, 2)
+  canal           String?
+  venta_id        Int?
+  fecha_gasto     DateTime
+  observaciones   String?
+  createdAt       DateTime @default(now())
+
+  venta Venta? @relation(fields: [venta_id], references: [id], onDelete: SetNull)
+  @@index([tipo_gasto])
+  @@index([canal])
+  @@index([fecha_gasto])
+}
+
+model AlertaStock {
+  id            Int     @id @default(autoincrement())
+  producto_id   Int
+  stock_actual  Int
+  stock_minimo  Int
+  generada      Boolean @default(true)
+  fecha_alerta  DateTime @default(now())
+  fecha_resuelta DateTime?
+
+  producto Producto @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+}
