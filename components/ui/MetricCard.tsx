@@ -12,7 +12,7 @@ export default function MetricCard({ label, value, color }: MetricCardProps) {
       bg: "bg-emerald-50",
       border: "border-emerald-200",
       text: "text-emerald-700",
-      icon: "text-emerald-600",
+      iconColor: "text-emerald-600",
       accent: "bg-emerald-100",
       icon: TrendingUp,
     },
