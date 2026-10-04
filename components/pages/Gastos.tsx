@@ -12,17 +12,22 @@ export default function Gastos() {
   }, []);
 
   const loadGastos = async () => {
-    const res = await fetch("/api/gastos");
-    const data = await res.json();
-    setGastos(data);
+    try {
+      const res = await fetch("/api/gastos");
+      const data = await res.json();
+      setGastos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error loading gastos:", error);
+      setGastos([]);
+    }
     setLoading(false);
   };
 
-  const gastosPorTipo = gastos.reduce((acc: any, g: any) => {
+  const gastosPorTipo = Array.isArray(gastos) ? gastos.reduce((acc: any, g: any) => {
     const tipo = g.tipo_gasto;
     acc[tipo] = (acc[tipo] || 0) + parseFloat(g.monto);
     return acc;
-  }, {});
+  }, {}) : {};
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

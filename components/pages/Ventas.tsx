@@ -12,9 +12,14 @@ export default function Ventas() {
   }, []);
 
   const loadVentas = async () => {
-    const res = await fetch("/api/ventas");
-    const data = await res.json();
-    setVentas(data);
+    try {
+      const res = await fetch("/api/ventas");
+      const data = await res.json();
+      setVentas(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error loading ventas:", error);
+      setVentas([]);
+    }
     setLoading(false);
   };
 

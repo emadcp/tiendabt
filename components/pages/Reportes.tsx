@@ -13,38 +13,45 @@ export default function Reportes() {
 
   useEffect(() => {
     const loadData = async () => {
-      const ventasRes = await fetch("/api/ventas");
-      const ventas = await ventasRes.json();
+      try {
+        const ventasRes = await fetch("/api/ventas");
+        const ventasData = await ventasRes.json();
+        const ventas = Array.isArray(ventasData) ? ventasData : [];
 
-      const gastosRes = await fetch("/api/gastos");
-      const gastos = await gastosRes.json();
+        const gastosRes = await fetch("/api/gastos");
+        const gastosData = await gastosRes.json();
+        const gastos = Array.isArray(gastosData) ? gastosData : [];
 
-      const productosRes = await fetch("/api/productos");
-      const productos = await productosRes.json();
+        const productosRes = await fetch("/api/productos");
+        const productosData = await productosRes.json();
+        const productos = Array.isArray(productosData) ? productosData : [];
 
-      const ingresos = ventas.reduce(
-        (sum: number, v: any) => sum + parseFloat(v.subtotal),
-        0
-      );
-      const gastos_total = gastos.reduce(
-        (sum: number, g: any) => sum + parseFloat(g.monto),
-        0
-      );
-      const costo_mercat = ventas.reduce((sum: number, v: any) => {
-        const prod = productos.find((p: any) => p.id === v.producto_id);
-        return sum + parseFloat(prod?.costo_unitario_actual || 0) * v.cantidad;
-      }, 0);
+        const ingresos = ventas.reduce(
+          (sum: number, v: any) => sum + parseFloat(v.subtotal),
+          0
+        );
+        const gastos_total = gastos.reduce(
+          (sum: number, g: any) => sum + parseFloat(g.monto),
+          0
+        );
+        const costo_mercat = ventas.reduce((sum: number, v: any) => {
+          const prod = productos.find((p: any) => p.id === v.producto_id);
+          return sum + parseFloat(prod?.costo_unitario_actual || 0) * v.cantidad;
+        }, 0);
 
       const ganancia = ingresos - gastos_total - costo_mercat;
       const rentabilidad = ingresos > 0 ? (ganancia / ingresos) * 100 : 0;
 
-      setDatos({
-        ingresos,
-        gastos: gastos_total,
-        costo_mercat,
-        ganancia,
-        rentabilidad,
-      });
+        setDatos({
+          ingresos,
+          gastos: gastos_total,
+          costo_mercat,
+          ganancia,
+          rentabilidad,
+        });
+      } catch (error) {
+        console.error("Error loading reportes data:", error);
+      }
     };
 
     loadData();

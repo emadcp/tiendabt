@@ -14,9 +14,14 @@ export default function Inventario() {
   }, []);
 
   const loadProductos = async () => {
-    const res = await fetch("/api/productos");
-    const data = await res.json();
-    setProductos(data);
+    try {
+      const res = await fetch("/api/productos");
+      const data = await res.json();
+      setProductos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error loading productos:", error);
+      setProductos([]);
+    }
     setLoading(false);
   };
 
