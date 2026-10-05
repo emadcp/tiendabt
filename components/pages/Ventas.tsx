@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Upload } from "lucide-react";
+import VentaModal from "@/components/modals/VentaModal";
 
 export default function Ventas() {
   const [ventas, setVentas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     loadVentas();
@@ -35,7 +37,10 @@ export default function Ventas() {
 
       <div className="flex-1 overflow-y-auto p-8 bg-white">
         <div className="flex gap-3 mb-6">
-          <button className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium transition">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium transition"
+          >
             <Plus size={18} />
             Agregar Venta Manual
           </button>
@@ -121,6 +126,16 @@ export default function Ventas() {
           )}
         </div>
       </div>
+
+      {showModal && (
+        <VentaModal
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false);
+            loadVentas();
+          }}
+        />
+      )}
     </div>
   );
 }

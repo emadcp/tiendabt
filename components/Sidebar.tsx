@@ -1,4 +1,4 @@
-import { BarChart3, Package, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
+import { BarChart3, Package, ShoppingCart, TrendingUp, Truck, Wallet } from "lucide-react";
 
 interface SidebarProps {
   activeTab: string;
@@ -26,6 +26,12 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       category: "Operaciones",
     },
     { id: "gastos", label: "Gastos", icon: Wallet, category: "Operaciones" },
+    {
+      id: "compras",
+      label: "Compras",
+      icon: Truck,
+      category: "Operaciones",
+    },
     {
       id: "reportes",
       label: "Reportes",

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import GastoModal from "@/components/modals/GastoModal";
 
 export default function Gastos() {
   const [gastos, setGastos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     loadGastos();
@@ -41,7 +43,10 @@ export default function Gastos() {
 
       <div className="flex-1 overflow-y-auto p-8 bg-white">
         <div className="mb-6">
-          <button className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium transition">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium transition"
+          >
             <Plus size={18} />
             Agregar Gasto
           </button>
@@ -129,6 +134,16 @@ export default function Gastos() {
           )}
         </div>
       </div>
+
+      {showModal && (
+        <GastoModal
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false);
+            loadGastos();
+          }}
+        />
+      )}
     </div>
   );
 }

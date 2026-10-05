@@ -4,23 +4,28 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 interface ProductoModalProps {
+  producto?: any;
   onClose: () => void;
   onSave: () => void;
 }
 
-export default function ProductoModal({ onClose, onSave }: ProductoModalProps) {
+export default function ProductoModal({ producto, onClose, onSave }: ProductoModalProps) {
+  const isEdit = !!producto;
+
   const [formData, setFormData] = useState({
-    nombre: "",
-    sku: "",
-    imagen_url: "",
-    url_mercado_libre: "",
-    url_tienda_propia: "",
-    stock_actual: "10",
-    stock_minimo: "5",
-    costo_unitario_actual: "0",
+    nombre: producto?.nombre || "",
+    sku: producto?.sku || "",
+    categoria: producto?.categoria || "",
+    imagen_url: producto?.imagen_url || "",
+    url_mercado_libre: producto?.url_mercado_libre || "",
+    url_tienda_propia: producto?.url_tienda_propia || "",
+    stock_actual: producto?.stock_actual?.toString() || "10",
+    stock_minimo: producto?.stock_minimo?.toString() || "5",
+    costo_unitario_actual: producto?.costo_unitario_actual?.toString() || "0",
+    activo: producto?.activo ?? true,
   });
 
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState(producto?.imagen_url || "");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: any) => {
@@ -39,20 +44,23 @@ export default function ProductoModal({ onClose, onSave }: ProductoModalProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/productos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        isEdit ? `/api/productos/${producto.id}` : "/api/productos",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (response.ok) {
         onSave();
       } else {
-        alert("Error al crear producto");
+        alert(isEdit ? "Error al actualizar producto" : "Error al crear producto");
       }
     } catch (error) {
       console.error(error);
-      alert("Error al crear producto");
+      alert(isEdit ? "Error al actualizar producto" : "Error al crear producto");
     } finally {
       setLoading(false);
     }
@@ -60,9 +68,11 @@ export default function ProductoModal({ onClose, onSave }: ProductoModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-96 max-h-96 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-96 max-h-[32rem] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Nuevo Producto</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            {isEdit ? "Editar Producto" : "Nuevo Producto"}
+          </h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700"
@@ -97,6 +107,19 @@ export default function ProductoModal({ onClose, onSave }: ProductoModalProps) {
               onChange={handleChange}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">
+              Categoría
+            </label>
+            <input
+              type="text"
+              name="categoria"
+              value={formData.categoria}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -189,6 +212,22 @@ export default function ProductoModal({ onClose, onSave }: ProductoModalProps) {
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
+          {isEdit && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.activo}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, activo: e.target.checked }))
+                }
+                className="w-4 h-4"
+              />
+              <span className="text-sm font-semibold text-slate-700">
+                Producto activo
+              </span>
+            </label>
+          )}
 
           <div className="flex gap-3 pt-4 border-t border-slate-200">
             <button
