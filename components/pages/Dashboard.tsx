@@ -46,7 +46,21 @@ export default function Dashboard() {
         costo_mercaderia: costo_mercat,
         ganancia_neta: ingresos - gastos_total - costo_mercat,
       });
-      setUltimasVentas(ventas.slice(0, 5));
+      setUltimasVentas(
+        ventas.slice(0, 5).map((v: any) => ({
+          ...v,
+          // La API incluye el objeto `producto` completo (relación anidada);
+          // acá se aplana a un string antes de pasarlo a <Table>, que no
+          // puede renderizar objetos. Ver también el guard agregado en Table.tsx.
+          producto: v?.producto?.nombre ?? "-",
+          subtotal: `$${(parseFloat(v?.subtotal) || 0).toLocaleString("es-AR")}`,
+          fecha_venta: v?.fecha_venta
+            ? new Date(v.fecha_venta).toLocaleDateString("es-AR", {
+                timeZone: "UTC",
+              })
+            : "-",
+        }))
+      );
       setAlertasStock(productos.filter((p: any) => (p?.stock_actual || 0) <= (p?.stock_minimo || 0)));
     } catch (error) {
       console.error("Error:", error);

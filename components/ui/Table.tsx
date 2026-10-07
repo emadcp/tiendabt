@@ -43,11 +43,19 @@ export default function Table({ columns, data }: TableProps) {
                 key={idx}
                 className="border-b border-slate-100 transition-colors hover:bg-slate-50"
               >
-                {validColumns.map((col) => (
-                  <td key={col.key} className="px-6 py-4 text-slate-700">
-                    {row[col.key] || "-"}
-                  </td>
-                ))}
+                {validColumns.map((col) => {
+                  const value = row[col.key];
+                  // Nunca renderizar un objeto/array crudo como hijo de React
+                  // (p. ej. una relación anidada tipo `producto`). Si llega algo
+                  // no primitivo, se muestra "-" en vez de crashear toda la tabla.
+                  const safeValue =
+                    typeof value === "object" && value !== null ? "-" : value;
+                  return (
+                    <td key={col.key} className="px-6 py-4 text-slate-700">
+                      {safeValue || "-"}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

@@ -116,7 +116,9 @@ export default function Ventas() {
                         ${parseFloat(v.costo_envio).toLocaleString("es-AR")}
                       </td>
                       <td className="px-6 py-4 text-slate-500">
-                        {new Date(v.fecha_venta).toLocaleDateString("es-AR")}
+                        {new Date(v.fecha_venta).toLocaleDateString("es-AR", {
+                          timeZone: "UTC",
+                        })}
                       </td>
                     </tr>
                   ))}

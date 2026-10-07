@@ -124,7 +124,9 @@ export default function Gastos() {
                         {g.canal || "-"}
                       </td>
                       <td className="px-6 py-4 text-slate-500">
-                        {new Date(g.fecha_gasto).toLocaleDateString("es-AR")}
+                        {new Date(g.fecha_gasto).toLocaleDateString("es-AR", {
+                          timeZone: "UTC",
+                        })}
                       </td>
                     </tr>
                   ))}

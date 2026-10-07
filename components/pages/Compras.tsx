@@ -162,7 +162,9 @@ export default function Compras() {
                           ${parseFloat(c.costo_total).toLocaleString("es-AR")}
                         </td>
                         <td className="px-6 py-4 text-slate-500">
-                          {new Date(c.fecha_compra).toLocaleDateString("es-AR")}
+                          {new Date(c.fecha_compra).toLocaleDateString("es-AR", {
+                            timeZone: "UTC",
+                          })}
                         </td>
                       </tr>
                     ))}
