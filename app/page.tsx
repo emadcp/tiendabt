@@ -7,6 +7,7 @@ import Inventario from "@/components/pages/Inventario";
 import Ventas from "@/components/pages/Ventas";
 import Gastos from "@/components/pages/Gastos";
 import Compras from "@/components/pages/Compras";
+import Proveedores from "@/components/pages/Proveedores";
 import Reportes from "@/components/pages/Reportes";
 
 export default function Home() {
@@ -24,6 +25,8 @@ export default function Home() {
         return <Gastos />;
       case "compras":
         return <Compras />;
+      case "proveedores":
+        return <Proveedores />;
       case "reportes":
         return <Reportes />;
       default:
