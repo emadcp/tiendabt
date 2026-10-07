@@ -1,6 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+// Suma días a una fecha en UTC (evita corrimientos de un día por zona horaria).
+function sumarDiasUTC(fecha: Date, dias: number) {
+  const d = new Date(
+    Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate())
+  );
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d;
+}
+
 // GET: Obtener todas las ventas
 export async function GET() {
   try {
@@ -33,6 +42,16 @@ export async function POST(request: NextRequest) {
     const costo_envio = parseFloat(body.costo_envio || "0");
     const costo_empaque = parseFloat(body.costo_empaque || "0");
     const otros_gastos = parseFloat(body.otros_gastos || "0");
+
+    const fecha_venta = new Date(body.fecha_venta);
+    // Fallback por si el cliente no envía la fecha de acreditación:
+    // Mercado Libre retiene ~30 días; otros canales se asumen acreditados el mismo día.
+    const fecha_acreditacion = body.fecha_acreditacion
+      ? new Date(body.fecha_acreditacion)
+      : sumarDiasUTC(
+          fecha_venta,
+          (body.canal || "").toLowerCase().includes("mercado libre") ? 30 : 0
+        );
 
     const venta = await prisma.$transaction(async (tx) => {
       const producto = await tx.producto.findUnique({
@@ -71,7 +90,8 @@ export async function POST(request: NextRequest) {
           otros_gastos,
           ganancia_bruta,
           ganancia_neta,
-          fecha_venta: new Date(body.fecha_venta),
+          fecha_venta,
+          fecha_acreditacion,
           estado: body.estado || "completada",
           referencia_ext: body.referencia_ext || null,
         },

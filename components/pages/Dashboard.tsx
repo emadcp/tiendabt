@@ -5,12 +5,39 @@ import MetricCard from "@/components/ui/MetricCard";
 import AlertBox from "@/components/ui/AlertBox";
 import Table from "@/components/ui/Table";
 
+// Diferencia en días (UTC, solo fecha) entre hoy y una fecha dada.
+function diasHasta(fechaIso: string) {
+  const hoy = new Date();
+  const hoyUTC = Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate());
+  const fecha = new Date(fechaIso);
+  const fechaUTC = Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate());
+  return Math.round((fechaUTC - hoyUTC) / 86400000);
+}
+
+// Suma el subtotal de las ventas cuya acreditación cae entre hoy y "max" días.
+function sumarProximoALiquidar(ventas: any[], max: number) {
+  return ventas.reduce((sum: number, v: any) => {
+    if (!v?.fecha_acreditacion) return sum;
+    const dias = diasHasta(v.fecha_acreditacion);
+    if (dias >= 0 && dias <= max) {
+      return sum + (parseFloat(v?.subtotal) || 0);
+    }
+    return sum;
+  }, 0);
+}
+
 export default function Dashboard() {
   const [metricas, setMetricas] = useState({
     ingresos: 0,
     gastos: 0,
     costo_mercaderia: 0,
     ganancia_neta: 0,
+  });
+  const [proximoLiquidar, setProximoLiquidar] = useState({
+    d7: 0,
+    d15: 0,
+    d21: 0,
+    d30: 0,
   });
   const [ultimas_ventas, setUltimasVentas] = useState<any[]>([]);
   const [alertas_stock, setAlertasStock] = useState<any[]>([]);
@@ -46,6 +73,12 @@ export default function Dashboard() {
         costo_mercaderia: costo_mercat,
         ganancia_neta: ingresos - gastos_total - costo_mercat,
       });
+      setProximoLiquidar({
+        d7: sumarProximoALiquidar(ventas, 7),
+        d15: sumarProximoALiquidar(ventas, 15),
+        d21: sumarProximoALiquidar(ventas, 21),
+        d30: sumarProximoALiquidar(ventas, 30),
+      });
       setUltimasVentas(
         ventas.slice(0, 5).map((v: any) => ({
           ...v,
@@ -65,6 +98,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Error:", error);
       setMetricas({ ingresos: 0, gastos: 0, costo_mercaderia: 0, ganancia_neta: 0 });
+      setProximoLiquidar({ d7: 0, d15: 0, d21: 0, d30: 0 });
       setUltimasVentas([]);
       setAlertasStock([]);
     }
@@ -102,6 +136,35 @@ export default function Dashboard() {
             value={`$${metricas.ganancia_neta.toLocaleString("es-AR")}`}
             color="blue"
           />
+        </div>
+
+        {/* Próximo a Liquidar */}
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">
+            Próximo a Liquidar
+          </h3>
+          <div className="grid grid-cols-4 gap-4">
+            <MetricCard
+              label="En 7 días"
+              value={`$${proximoLiquidar.d7.toLocaleString("es-AR")}`}
+              color="green"
+            />
+            <MetricCard
+              label="En 15 días"
+              value={`$${proximoLiquidar.d15.toLocaleString("es-AR")}`}
+              color="blue"
+            />
+            <MetricCard
+              label="En 21 días"
+              value={`$${proximoLiquidar.d21.toLocaleString("es-AR")}`}
+              color="orange"
+            />
+            <MetricCard
+              label="En 30 días"
+              value={`$${proximoLiquidar.d30.toLocaleString("es-AR")}`}
+              color="red"
+            />
+          </div>
         </div>
 
         {/* Alertas */}

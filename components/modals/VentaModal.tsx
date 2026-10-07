@@ -12,11 +12,28 @@ const CANALES_SUGERIDOS = ["Mercado Libre", "Tienda Propia"];
 
 const hoyISO = () => new Date().toISOString().slice(0, 10);
 
+// Suma días a una fecha YYYY-MM-DD usando UTC para evitar corrimientos de
+// un día por zona horaria (mismo criterio que el resto de la app).
+const addDaysISO = (iso: string, dias: number) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + dias);
+  return date.toISOString().slice(0, 10);
+};
+
+// Mercado Libre retiene el dinero ~30 días antes de acreditarlo.
+// Otros canales (ej. Tienda Propia) se asumen acreditados el mismo día.
+const sugerirFechaAcreditacion = (fechaVenta: string, canal: string) => {
+  const esMercadoLibre = canal.toLowerCase().includes("mercado libre");
+  return addDaysISO(fechaVenta, esMercadoLibre ? 30 : 0);
+};
+
 export default function VentaModal({ onClose, onSave }: VentaModalProps) {
   const [productos, setProductos] = useState<any[]>([]);
   const [loadingProductos, setLoadingProductos] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [acreditacionTocada, setAcreditacionTocada] = useState(false);
 
   const [formData, setFormData] = useState({
     producto_id: "",
@@ -28,6 +45,7 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
     costo_empaque: "0",
     otros_gastos: "0",
     fecha_venta: hoyISO(),
+    fecha_acreditacion: sugerirFechaAcreditacion(hoyISO(), ""),
     referencia_ext: "",
   });
 
@@ -69,7 +87,28 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
       ...prev,
       canal,
       precio_unitario: precioCanal ? precioCanal.precio_venta.toString() : prev.precio_unitario,
+      fecha_acreditacion: acreditacionTocada
+        ? prev.fecha_acreditacion
+        : sugerirFechaAcreditacion(prev.fecha_venta, canal),
     }));
+  };
+
+  // Si cambia la fecha de venta, recalcula la sugerencia de acreditación
+  // (salvo que el usuario ya haya editado manualmente ese campo).
+  const handleFechaVentaChange = (e: any) => {
+    const fecha_venta = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      fecha_venta,
+      fecha_acreditacion: acreditacionTocada
+        ? prev.fecha_acreditacion
+        : sugerirFechaAcreditacion(fecha_venta, prev.canal),
+    }));
+  };
+
+  const handleFechaAcreditacionChange = (e: any) => {
+    setAcreditacionTocada(true);
+    setFormData((prev) => ({ ...prev, fecha_acreditacion: e.target.value }));
   };
 
   const cantidad = parseInt(formData.cantidad, 10) || 0;
@@ -271,24 +310,43 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
                 type="date"
                 name="fecha_venta"
                 value={formData.fecha_venta}
-                onChange={handleChange}
+                onChange={handleFechaVentaChange}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Referencia (opcional)
+                Fecha de Acreditación
               </label>
               <input
-                type="text"
-                name="referencia_ext"
-                value={formData.referencia_ext}
-                onChange={handleChange}
-                placeholder="N° de orden"
+                type="date"
+                name="fecha_acreditacion"
+                value={formData.fecha_acreditacion}
+                onChange={handleFechaAcreditacionChange}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
+              {!acreditacionTocada && (
+                <p className="text-xs mt-1 text-slate-500">
+                  Sugerida según el canal (editable)
+                </p>
+              )}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">
+              Referencia (opcional)
+            </label>
+            <input
+              type="text"
+              name="referencia_ext"
+              value={formData.referencia_ext}
+              onChange={handleChange}
+              placeholder="N° de orden"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {subtotal > 0 && (

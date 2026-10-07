@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { Plus, Upload } from "lucide-react";
 import VentaModal from "@/components/modals/VentaModal";
 
+// Diferencia en días (UTC, solo fecha) entre hoy y una fecha dada.
+function diasHasta(fechaIso: string) {
+  const hoy = new Date();
+  const hoyUTC = Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate());
+  const fecha = new Date(fechaIso);
+  const fechaUTC = Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate());
+  return Math.round((fechaUTC - hoyUTC) / 86400000);
+}
+
 export default function Ventas() {
   const [ventas, setVentas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,40 +97,73 @@ export default function Ventas() {
                       Envío
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">
-                      Fecha
+                      Fecha Venta
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">
+                      Acreditación
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ventas.map((v: any) => (
-                    <tr
-                      key={v.id}
-                      className="border-b border-slate-100 hover:bg-slate-50"
-                    >
-                      <td className="px-6 py-4 font-medium text-slate-900">
-                        {v.producto?.nombre}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">{v.canal}</td>
-                      <td className="px-6 py-4">{v.cantidad}</td>
-                      <td className="px-6 py-4">
-                        ${parseFloat(v.precio_unitario).toLocaleString("es-AR")}
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-green-600">
-                        ${parseFloat(v.subtotal).toLocaleString("es-AR")}
-                      </td>
-                      <td className="px-6 py-4 text-red-600">
-                        ${parseFloat(v.comision_canal).toLocaleString("es-AR")}
-                      </td>
-                      <td className="px-6 py-4 text-red-600">
-                        ${parseFloat(v.costo_envio).toLocaleString("es-AR")}
-                      </td>
-                      <td className="px-6 py-4 text-slate-500">
-                        {new Date(v.fecha_venta).toLocaleDateString("es-AR", {
-                          timeZone: "UTC",
-                        })}
-                      </td>
-                    </tr>
-                  ))}
+                  {ventas.map((v: any) => {
+                    const diasAcreditacion = v.fecha_acreditacion
+                      ? diasHasta(v.fecha_acreditacion)
+                      : null;
+                    return (
+                      <tr
+                        key={v.id}
+                        className="border-b border-slate-100 hover:bg-slate-50"
+                      >
+                        <td className="px-6 py-4 font-medium text-slate-900">
+                          {v.producto?.nombre}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">{v.canal}</td>
+                        <td className="px-6 py-4">{v.cantidad}</td>
+                        <td className="px-6 py-4">
+                          ${parseFloat(v.precio_unitario).toLocaleString("es-AR")}
+                        </td>
+                        <td className="px-6 py-4 font-semibold text-green-600">
+                          ${parseFloat(v.subtotal).toLocaleString("es-AR")}
+                        </td>
+                        <td className="px-6 py-4 text-red-600">
+                          ${parseFloat(v.comision_canal).toLocaleString("es-AR")}
+                        </td>
+                        <td className="px-6 py-4 text-red-600">
+                          ${parseFloat(v.costo_envio).toLocaleString("es-AR")}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500">
+                          {new Date(v.fecha_venta).toLocaleDateString("es-AR", {
+                            timeZone: "UTC",
+                          })}
+                        </td>
+                        <td className="px-6 py-4">
+                          {v.fecha_acreditacion ? (
+                            <>
+                              <p className="text-slate-500">
+                                {new Date(v.fecha_acreditacion).toLocaleDateString(
+                                  "es-AR",
+                                  { timeZone: "UTC" }
+                                )}
+                              </p>
+                              <p
+                                className={`text-xs font-semibold ${
+                                  diasAcreditacion !== null && diasAcreditacion <= 0
+                                    ? "text-green-600"
+                                    : "text-orange-600"
+                                }`}
+                              >
+                                {diasAcreditacion !== null && diasAcreditacion <= 0
+                                  ? "Liquidado"
+                                  : `Faltan ${diasAcreditacion} días`}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
