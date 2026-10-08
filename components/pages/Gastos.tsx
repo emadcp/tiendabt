@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import GastoModal from "@/components/modals/GastoModal";
 
 export default function Gastos() {
   const [gastos, setGastos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingGasto, setEditingGasto] = useState<any>(null);
 
   useEffect(() => {
     loadGastos();
@@ -23,6 +24,36 @@ export default function Gastos() {
       setGastos([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddGasto = () => {
+    setEditingGasto(null);
+    setShowModal(true);
+  };
+
+  const handleEditGasto = (gasto: any) => {
+    setEditingGasto(gasto);
+    setShowModal(true);
+  };
+
+  const handleBorrarGasto = async (gasto: any) => {
+    if (
+      !confirm(`¿Borrar definitivamente el gasto "${gasto.descripcion}"?`)
+    )
+      return;
+
+    try {
+      const res = await fetch(`/api/gastos/${gasto.id}`, { method: "DELETE" });
+      if (res.ok) {
+        loadGastos();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Error al borrar el gasto");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error al borrar el gasto");
     }
   };
 
@@ -44,7 +75,7 @@ export default function Gastos() {
       <div className="flex-1 overflow-y-auto p-8 bg-white">
         <div className="mb-6">
           <button
-            onClick={() => setShowModal(true)}
+            onClick={handleAddGasto}
             className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-medium transition"
           >
             <Plus size={18} />
@@ -101,6 +132,9 @@ export default function Gastos() {
                     <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">
                       Fecha
                     </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -128,6 +162,24 @@ export default function Gastos() {
                           timeZone: "UTC",
                         })}
                       </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleEditGasto(g)}
+                            title="Editar"
+                            className="text-slate-500 hover:text-blue-600 transition"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleBorrarGasto(g)}
+                            title="Borrar"
+                            className="text-slate-500 hover:text-red-600 transition"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -139,6 +191,7 @@ export default function Gastos() {
 
       {showModal && (
         <GastoModal
+          gasto={editingGasto}
           onClose={() => setShowModal(false)}
           onSave={() => {
             setShowModal(false);

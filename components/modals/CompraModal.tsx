@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 interface CompraModalProps {
+  compra?: any;
   onClose: () => void;
   onSave: () => void;
 }
 
 const hoyISO = () => new Date().toISOString().slice(0, 10);
 
-export default function CompraModal({ onClose, onSave }: CompraModalProps) {
+export default function CompraModal({ compra, onClose, onSave }: CompraModalProps) {
+  const isEdit = !!compra;
+
   const [productos, setProductos] = useState<any[]>([]);
   const [proveedores, setProveedores] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -18,12 +21,12 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    producto_id: "",
-    proveedor_id: "",
-    cantidad: "1",
-    precio_unitario: "",
-    fecha_compra: hoyISO(),
-    referencia_proveedor: "",
+    producto_id: compra?.producto_id?.toString() || "",
+    proveedor_id: compra?.proveedor_id?.toString() || "",
+    cantidad: compra?.cantidad?.toString() || "1",
+    precio_unitario: compra ? parseFloat(compra.precio_unitario).toString() : "",
+    fecha_compra: compra?.fecha_compra ? compra.fecha_compra.slice(0, 10) : hoyISO(),
+    referencia_proveedor: compra?.referencia_proveedor || "",
   });
 
   useEffect(() => {
@@ -32,10 +35,29 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
       fetch("/api/proveedores").then((res) => res.json()),
     ])
       .then(([productosData, proveedoresData]) => {
-        setProductos(
-          Array.isArray(productosData) ? productosData.filter((p: any) => p.activo) : []
-        );
-        setProveedores(Array.isArray(proveedoresData) ? proveedoresData : []);
+        const listaProductos = Array.isArray(productosData) ? productosData : [];
+        const activos = listaProductos.filter((p: any) => p.activo);
+        if (
+          isEdit &&
+          compra?.producto_id &&
+          !activos.some((p: any) => p.id === compra.producto_id)
+        ) {
+          const actual = listaProductos.find((p: any) => p.id === compra.producto_id);
+          if (actual) activos.unshift(actual);
+        }
+        setProductos(activos);
+
+        const listaProveedores = Array.isArray(proveedoresData) ? proveedoresData : [];
+        const proveedoresActivos = listaProveedores.filter((p: any) => p.activo);
+        if (
+          isEdit &&
+          compra?.proveedor_id &&
+          !proveedoresActivos.some((p: any) => p.id === compra.proveedor_id)
+        ) {
+          const actual = listaProveedores.find((p: any) => p.id === compra.proveedor_id);
+          if (actual) proveedoresActivos.unshift(actual);
+        }
+        setProveedores(proveedoresActivos);
       })
       .catch(() => {
         setProductos([]);
@@ -80,14 +102,17 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/compras", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          proveedor_nombre: proveedorSeleccionado.nombre,
-        }),
-      });
+      const res = await fetch(
+        isEdit ? `/api/compras/${compra.id}` : "/api/compras",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            proveedor_nombre: proveedorSeleccionado.nombre,
+          }),
+        }
+      );
 
       if (res.ok) {
         onSave();
@@ -107,7 +132,9 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-[28rem] max-h-[36rem] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Nueva Compra</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            {isEdit ? "Editar Compra" : "Nueva Compra"}
+          </h2>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
             <X size={24} />
           </button>
@@ -221,7 +248,7 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
             </div>
           </div>
 
-          {productoSeleccionado && cantidad > 0 && precio > 0 && (
+          {!isEdit && productoSeleccionado && cantidad > 0 && precio > 0 && (
             <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-600">Costo Total</span>
@@ -243,6 +270,13 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
               </div>
             </div>
           )}
+          {isEdit && (
+            <p className="text-xs text-slate-500">
+              Al guardar, el stock y el costo promedio ponderado del producto
+              se recalculan automáticamente a partir de todas las compras y
+              ventas no canceladas.
+            </p>
+          )}
 
           {error && (
             <p className="text-sm text-red-600 font-semibold">{error}</p>
@@ -261,7 +295,7 @@ export default function CompraModal({ onClose, onSave }: CompraModalProps) {
               disabled={loading || proveedores.length === 0}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
             >
-              {loading ? "Guardando..." : "Registrar Compra"}
+              {loading ? "Guardando..." : isEdit ? "Guardar Cambios" : "Registrar Compra"}
             </button>
           </div>
         </form>

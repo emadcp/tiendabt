@@ -17,6 +17,8 @@ export default function Reportes() {
         const ventasRes = await fetch("/api/ventas");
         const ventasData = await ventasRes.json();
         const ventas = Array.isArray(ventasData) ? ventasData : [];
+        // Las ventas canceladas no deben impactar en las métricas financieras.
+        const ventasActivas = ventas.filter((v: any) => v?.estado !== "cancelada");
 
         const gastosRes = await fetch("/api/gastos");
         const gastosData = await gastosRes.json();
@@ -26,7 +28,7 @@ export default function Reportes() {
         const productosData = await productosRes.json();
         const productos = Array.isArray(productosData) ? productosData : [];
 
-        const ingresos = ventas.reduce(
+        const ingresos = ventasActivas.reduce(
           (sum: number, v: any) => sum + (parseFloat(v?.subtotal) || 0),
           0
         );
@@ -34,7 +36,7 @@ export default function Reportes() {
           (sum: number, g: any) => sum + (parseFloat(g?.monto) || 0),
           0
         );
-        const costo_mercat = ventas.reduce((sum: number, v: any) => {
+        const costo_mercat = ventasActivas.reduce((sum: number, v: any) => {
           const prod = productos.find((p: any) => p?.id === v?.producto_id);
           return sum + ((parseFloat(prod?.costo_unitario_actual) || 0) * (v?.cantidad || 0));
         }, 0);

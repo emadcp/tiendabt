@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 interface VentaModalProps {
+  venta?: any;
   onClose: () => void;
   onSave: () => void;
 }
@@ -28,31 +29,47 @@ const sugerirFechaAcreditacion = (fechaVenta: string, canal: string) => {
   return addDaysISO(fechaVenta, esMercadoLibre ? 30 : 0);
 };
 
-export default function VentaModal({ onClose, onSave }: VentaModalProps) {
+export default function VentaModal({ venta, onClose, onSave }: VentaModalProps) {
+  const isEdit = !!venta;
+
   const [productos, setProductos] = useState<any[]>([]);
   const [loadingProductos, setLoadingProductos] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [acreditacionTocada, setAcreditacionTocada] = useState(false);
+  // En edición no queremos que tocar canal/fecha_venta pise la fecha de
+  // acreditación ya guardada; en alta, sí queremos la sugerencia automática.
+  const [acreditacionTocada, setAcreditacionTocada] = useState(isEdit);
 
   const [formData, setFormData] = useState({
-    producto_id: "",
-    canal: "",
-    cantidad: "1",
-    precio_unitario: "",
-    comision_canal: "0",
-    costo_envio: "0",
-    costo_empaque: "0",
-    otros_gastos: "0",
-    fecha_venta: hoyISO(),
-    fecha_acreditacion: sugerirFechaAcreditacion(hoyISO(), ""),
-    referencia_ext: "",
+    producto_id: venta?.producto_id?.toString() || "",
+    canal: venta?.canal || "",
+    cantidad: venta?.cantidad?.toString() || "1",
+    precio_unitario: venta ? parseFloat(venta.precio_unitario).toString() : "",
+    comision_canal: venta ? parseFloat(venta.comision_canal).toString() : "0",
+    costo_envio: venta ? parseFloat(venta.costo_envio).toString() : "0",
+    costo_empaque: venta ? parseFloat(venta.costo_empaque).toString() : "0",
+    otros_gastos: venta ? parseFloat(venta.otros_gastos).toString() : "0",
+    fecha_venta: venta?.fecha_venta ? venta.fecha_venta.slice(0, 10) : hoyISO(),
+    fecha_acreditacion: venta?.fecha_acreditacion
+      ? venta.fecha_acreditacion.slice(0, 10)
+      : sugerirFechaAcreditacion(hoyISO(), ""),
+    referencia_ext: venta?.referencia_ext || "",
   });
 
   useEffect(() => {
     fetch("/api/productos")
       .then((res) => res.json())
-      .then((data) => setProductos(Array.isArray(data) ? data.filter((p: any) => p.activo) : []))
+      .then((data) => {
+        const lista = Array.isArray(data) ? data : [];
+        const activos = lista.filter((p: any) => p.activo);
+        // En edición, si el producto asignado está inactivo, lo incluimos
+        // igual para que el <select> no quede en un valor inválido.
+        if (isEdit && venta?.producto_id && !activos.some((p: any) => p.id === venta.producto_id)) {
+          const actual = lista.find((p: any) => p.id === venta.producto_id);
+          if (actual) activos.unshift(actual);
+        }
+        setProductos(activos);
+      })
       .catch(() => setProductos([]))
       .finally(() => setLoadingProductos(false));
   }, []);
@@ -125,7 +142,16 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
     (parseFloat(formData.costo_empaque) || 0) -
     (parseFloat(formData.otros_gastos) || 0);
 
-  const stockDisponible = productoSeleccionado?.stock_actual ?? null;
+  // Si estamos editando esta misma venta sin cambiar de producto, el stock
+  // ya tiene restada su cantidad original: se la devolvemos para mostrar la
+  // disponibilidad real antes de aplicar la nueva cantidad.
+  const cantidadOriginalMismoProducto =
+    isEdit && venta.producto_id === parseInt(formData.producto_id, 10)
+      ? venta.cantidad
+      : 0;
+  const stockDisponible = productoSeleccionado
+    ? productoSeleccionado.stock_actual + cantidadOriginalMismoProducto
+    : null;
   const stockInsuficiente = stockDisponible !== null && cantidad > stockDisponible;
 
   const handleSubmit = async (e: any) => {
@@ -134,11 +160,14 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/ventas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        isEdit ? `/api/ventas/${venta.id}` : "/api/ventas",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (res.ok) {
         onSave();
@@ -158,7 +187,9 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-[28rem] max-h-[36rem] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Nueva Venta</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            {isEdit ? "Editar Venta" : "Nueva Venta"}
+          </h2>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
             <X size={24} />
           </button>
@@ -389,7 +420,7 @@ export default function VentaModal({ onClose, onSave }: VentaModalProps) {
               disabled={loading || stockInsuficiente}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
             >
-              {loading ? "Guardando..." : "Registrar Venta"}
+              {loading ? "Guardando..." : isEdit ? "Guardar Cambios" : "Registrar Venta"}
             </button>
           </div>
         </form>

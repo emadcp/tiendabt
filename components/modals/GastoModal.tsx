@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 interface GastoModalProps {
+  gasto?: any;
   onClose: () => void;
   onSave: () => void;
 }
@@ -21,17 +22,19 @@ const CANALES_SUGERIDOS = ["Mercado Libre", "Tienda Propia"];
 
 const hoyISO = () => new Date().toISOString().slice(0, 10);
 
-export default function GastoModal({ onClose, onSave }: GastoModalProps) {
+export default function GastoModal({ gasto, onClose, onSave }: GastoModalProps) {
+  const isEdit = !!gasto;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    tipo_gasto: "",
-    descripcion: "",
-    monto: "",
-    canal: "",
-    fecha_gasto: hoyISO(),
-    observaciones: "",
+    tipo_gasto: gasto?.tipo_gasto || "",
+    descripcion: gasto?.descripcion || "",
+    monto: gasto ? parseFloat(gasto.monto).toString() : "",
+    canal: gasto?.canal || "",
+    fecha_gasto: gasto?.fecha_gasto ? gasto.fecha_gasto.slice(0, 10) : hoyISO(),
+    observaciones: gasto?.observaciones || "",
   });
 
   const handleChange = (e: any) => {
@@ -45,11 +48,14 @@ export default function GastoModal({ onClose, onSave }: GastoModalProps) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/gastos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        isEdit ? `/api/gastos/${gasto.id}` : "/api/gastos",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (res.ok) {
         onSave();
@@ -69,7 +75,9 @@ export default function GastoModal({ onClose, onSave }: GastoModalProps) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-[28rem] max-h-[34rem] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Nuevo Gasto</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            {isEdit ? "Editar Gasto" : "Nuevo Gasto"}
+          </h2>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
             <X size={24} />
           </button>
@@ -191,7 +199,7 @@ export default function GastoModal({ onClose, onSave }: GastoModalProps) {
               disabled={loading}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
             >
-              {loading ? "Guardando..." : "Registrar Gasto"}
+              {loading ? "Guardando..." : isEdit ? "Guardar Cambios" : "Registrar Gasto"}
             </button>
           </div>
         </form>

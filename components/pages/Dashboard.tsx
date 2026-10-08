@@ -51,6 +51,8 @@ export default function Dashboard() {
       const ventasRes = await fetch("/api/ventas");
       const ventasData = await ventasRes.json();
       const ventas = Array.isArray(ventasData) ? ventasData : [];
+      // Las ventas canceladas no deben impactar en las métricas financieras.
+      const ventasActivas = ventas.filter((v: any) => v?.estado !== "cancelada");
 
       const gastosRes = await fetch("/api/gastos");
       const gastosData = await gastosRes.json();
@@ -60,9 +62,9 @@ export default function Dashboard() {
       const productosData = await productosRes.json();
       const productos = Array.isArray(productosData) ? productosData : [];
 
-      const ingresos = ventas.reduce((sum: number, v: any) => sum + (parseFloat(v?.subtotal) || 0), 0);
+      const ingresos = ventasActivas.reduce((sum: number, v: any) => sum + (parseFloat(v?.subtotal) || 0), 0);
       const gastos_total = gastos.reduce((sum: number, g: any) => sum + (parseFloat(g?.monto) || 0), 0);
-      const costo_mercat = ventas.reduce((sum: number, v: any) => {
+      const costo_mercat = ventasActivas.reduce((sum: number, v: any) => {
         const prod = productos.find((p: any) => p?.id === v?.producto_id);
         return sum + ((parseFloat(prod?.costo_unitario_actual) || 0) * (v?.cantidad || 0));
       }, 0);
@@ -74,13 +76,13 @@ export default function Dashboard() {
         ganancia_neta: ingresos - gastos_total - costo_mercat,
       });
       setProximoLiquidar({
-        d7: sumarProximoALiquidar(ventas, 7),
-        d15: sumarProximoALiquidar(ventas, 15),
-        d21: sumarProximoALiquidar(ventas, 21),
-        d30: sumarProximoALiquidar(ventas, 30),
+        d7: sumarProximoALiquidar(ventasActivas, 7),
+        d15: sumarProximoALiquidar(ventasActivas, 15),
+        d21: sumarProximoALiquidar(ventasActivas, 21),
+        d30: sumarProximoALiquidar(ventasActivas, 30),
       });
       setUltimasVentas(
-        ventas.slice(0, 5).map((v: any) => ({
+        ventasActivas.slice(0, 5).map((v: any) => ({
           ...v,
           // La API incluye el objeto `producto` completo (relación anidada);
           // acá se aplana a un string antes de pasarlo a <Table>, que no

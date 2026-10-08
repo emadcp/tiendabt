@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { recalcularProducto } from "@/lib/stock";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Obtener todas las compras
@@ -41,26 +42,9 @@ export async function POST(request: NextRequest) {
         throw new Error("PRODUCTO_NO_ENCONTRADO");
       }
 
-      const stock_antes = producto.stock_actual;
-      const costo_prom_antes = parseFloat(producto.costo_unitario_prom.toString());
-      const stock_despues = stock_antes + cantidad;
       const costo_total = cantidad * precio_unitario;
 
-      const nuevo_costo_prom =
-        stock_despues > 0
-          ? (stock_antes * costo_prom_antes + cantidad * precio_unitario) / stock_despues
-          : precio_unitario;
-
-      await tx.producto.update({
-        where: { id: producto_id },
-        data: {
-          stock_actual: stock_despues,
-          costo_unitario_prom: nuevo_costo_prom,
-          costo_unitario_actual: precio_unitario,
-        },
-      });
-
-      return tx.compra.create({
+      const nuevaCompra = await tx.compra.create({
         data: {
           producto_id,
           proveedor_id,
@@ -73,6 +57,12 @@ export async function POST(request: NextRequest) {
           estado: body.estado || "completada",
         },
       });
+
+      // Recalcula stock_actual, costo_unitario_prom y costo_unitario_actual
+      // desde el ledger completo de compras/ventas no canceladas (lib/stock.ts).
+      await recalcularProducto(tx, producto_id);
+
+      return nuevaCompra;
     });
 
     return NextResponse.json(compra, { status: 201 });

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { recalcularProducto } from "@/lib/stock";
 import { NextRequest, NextResponse } from "next/server";
 
 // Suma días a una fecha en UTC (evita corrimientos de un día por zona horaria).
@@ -72,12 +73,7 @@ export async function POST(request: NextRequest) {
       const ganancia_neta =
         ganancia_bruta - comision_canal - costo_envio - costo_empaque - otros_gastos;
 
-      await tx.producto.update({
-        where: { id: producto_id },
-        data: { stock_actual: producto.stock_actual - cantidad },
-      });
-
-      return tx.venta.create({
+      const nuevaVenta = await tx.venta.create({
         data: {
           producto_id,
           canal: body.canal,
@@ -96,6 +92,12 @@ export async function POST(request: NextRequest) {
           referencia_ext: body.referencia_ext || null,
         },
       });
+
+      // Recalcula stock_actual y costos desde el ledger completo de
+      // compras/ventas no canceladas (ver lib/stock.ts).
+      await recalcularProducto(tx, producto_id);
+
+      return nuevaVenta;
     });
 
     return NextResponse.json(venta, { status: 201 });
