@@ -94,8 +94,16 @@ export async function POST(request: NextRequest) {
       });
 
       // Recalcula stock_actual y costos desde el ledger completo de
-      // compras/ventas no canceladas (ver lib/stock.ts).
-      await recalcularProducto(tx, producto_id);
+      // compras/ventas no canceladas (ver lib/stock.ts). El chequeo previo
+      // (producto.stock_actual < cantidad) usa el valor ya almacenado, que
+      // en teoría siempre debería reflejar el ledger — pero por las dudas
+      // (p.ej. si quedó desalineado por alguna corrección manual externa)
+      // se vuelve a validar acá contra el resultado real del recálculo,
+      // igual que ya hacen PUT/DELETE de compras y ventas.
+      const resultado = await recalcularProducto(tx, producto_id);
+      if (resultado.stock < 0) {
+        throw new Error("STOCK_INSUFICIENTE");
+      }
 
       return nuevaVenta;
     });

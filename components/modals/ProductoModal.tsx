@@ -178,13 +178,24 @@ export default function ProductoModal({ producto, onClose, onSave }: ProductoMod
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Stock Actual
               </label>
-              <input
-                type="number"
-                name="stock_actual"
-                value={formData.stock_actual}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              {isEdit ? (
+                <>
+                  <p className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-700">
+                    {formData.stock_actual}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Se actualiza solo con Compras/Ventas
+                  </p>
+                </>
+              ) : (
+                <input
+                  type="number"
+                  name="stock_actual"
+                  value={formData.stock_actual}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
@@ -204,13 +215,24 @@ export default function ProductoModal({ producto, onClose, onSave }: ProductoMod
             <label className="block text-sm font-semibold text-slate-700 mb-1">
               Costo Unitario
             </label>
-            <input
-              type="number"
-              name="costo_unitario_actual"
-              value={formData.costo_unitario_actual}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            {isEdit ? (
+              <>
+                <p className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-700">
+                  ${parseFloat(formData.costo_unitario_actual).toLocaleString("es-AR")}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Se actualiza solo con la última Compra registrada
+                </p>
+              </>
+            ) : (
+              <input
+                type="number"
+                name="costo_unitario_actual"
+                value={formData.costo_unitario_actual}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            )}
           </div>
 
           {isEdit && (

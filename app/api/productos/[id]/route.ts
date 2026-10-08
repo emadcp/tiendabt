@@ -2,6 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 // PUT: Editar producto existente (incluye activar/desactivar)
+//
+// IMPORTANTE: stock_actual, costo_unitario_actual y costo_unitario_prom NO
+// se aceptan acá. Son campos derivados que calcula recalcularProducto()
+// (lib/stock.ts) a partir del historial de Compras/Ventas no canceladas.
+// Si se dejaran editar a mano acá, cualquier edición del producto pisaría
+// silenciosamente el valor real y volvería a desalinearse la próxima vez
+// que se registre/edite/cancele una compra o venta. Para cambiar el stock,
+// el único camino es registrar una Compra o Venta (o, para una corrección
+// manual puntual, una Compra de ajuste).
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -20,9 +29,7 @@ export async function PUT(
         imagen_url: body.imagen_url || null,
         url_mercado_libre: body.url_mercado_libre || null,
         url_tienda_propia: body.url_tienda_propia || null,
-        stock_actual: parseInt(body.stock_actual || "0", 10),
         stock_minimo: parseInt(body.stock_minimo || "5", 10),
-        costo_unitario_actual: parseFloat(body.costo_unitario_actual || "0"),
         activo: body.activo ?? true,
       },
     });
