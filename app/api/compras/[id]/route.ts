@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { recalcularProducto } from "@/lib/stock";
+import { lockProducto, lockProductos, recalcularProducto } from "@/lib/stock";
 import { NextRequest, NextResponse } from "next/server";
 
 // PUT: Editar una compra existente (incluye cancelar/reactivar vía
@@ -56,6 +56,11 @@ export async function PUT(
 
       const costo_total = cantidad * precio_unitario;
 
+      // Bloquea ambos productos involucrados (el nuevo y, si cambia, el
+      // anterior) ANTES de tocar la Compra, en orden consistente (ver
+      // comentario en lib/stock.ts sobre por qué el orden evita deadlocks).
+      await lockProductos(tx, [producto_id, producto_id_anterior]);
+
       const actualizada = await tx.compra.update({
         where: { id },
         data: {
@@ -86,7 +91,7 @@ export async function PUT(
       }
 
       return actualizada;
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json(compra, { status: 200 });
   } catch (error: any) {
@@ -129,13 +134,15 @@ export async function DELETE(
         throw new Error("COMPRA_NO_ENCONTRADA");
       }
 
+      await lockProducto(tx, existente.producto_id);
+
       await tx.compra.delete({ where: { id } });
 
       const resultado = await recalcularProducto(tx, existente.producto_id);
       if (resultado.stock < 0) {
         throw new Error("STOCK_NEGATIVO");
       }
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error: any) {

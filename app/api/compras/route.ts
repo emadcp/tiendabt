@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { recalcularProducto } from "@/lib/stock";
+import { lockProducto, recalcularProducto } from "@/lib/stock";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Obtener todas las compras
@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
         throw new Error("PRODUCTO_NO_ENCONTRADO");
       }
 
+      // Bloquea el producto ANTES de crear la Compra (ver comentario en
+      // lib/stock.ts sobre por qué el orden importa para evitar deadlocks).
+      await lockProducto(tx, producto_id);
+
       const costo_total = cantidad * precio_unitario;
 
       const nuevaCompra = await tx.compra.create({
@@ -63,7 +67,7 @@ export async function POST(request: NextRequest) {
       await recalcularProducto(tx, producto_id);
 
       return nuevaCompra;
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json(compra, { status: 201 });
   } catch (error: any) {

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { recalcularProducto } from "@/lib/stock";
+import { lockProducto, recalcularProducto } from "@/lib/stock";
 import { NextRequest, NextResponse } from "next/server";
 
 // Suma días a una fecha en UTC (evita corrimientos de un día por zona horaria).
@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
       if (!producto) {
         throw new Error("PRODUCTO_NO_ENCONTRADO");
       }
+
+      // Bloquea el producto ANTES de crear la Venta (ver comentario en
+      // lib/stock.ts sobre por qué el orden importa para evitar deadlocks).
+      await lockProducto(tx, producto_id);
+
       if (producto.stock_actual < cantidad) {
         throw new Error("STOCK_INSUFICIENTE");
       }
@@ -106,7 +111,7 @@ export async function POST(request: NextRequest) {
       }
 
       return nuevaVenta;
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json(venta, { status: 201 });
   } catch (error: any) {

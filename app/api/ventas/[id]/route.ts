@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { recalcularProducto } from "@/lib/stock";
+import { lockProducto, lockProductos, recalcularProducto } from "@/lib/stock";
 import { NextRequest, NextResponse } from "next/server";
 
 // PUT: Editar una venta existente. También se usa para cancelar/reactivar
@@ -65,6 +65,11 @@ export async function PUT(
         throw new Error("PRODUCTO_NO_ENCONTRADO");
       }
 
+      // Bloquea ambos productos involucrados (el nuevo y, si cambia, el
+      // anterior) ANTES de tocar la Venta, en orden consistente (ver
+      // comentario en lib/stock.ts sobre por qué el orden evita deadlocks).
+      await lockProductos(tx, [producto_id, producto_id_anterior]);
+
       const costo_unitario = parseFloat(producto.costo_unitario_actual.toString());
       const subtotal = precio_unitario * cantidad;
       const costo_total = costo_unitario * cantidad;
@@ -108,7 +113,7 @@ export async function PUT(
       }
 
       return actualizada;
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json(venta, { status: 200 });
   } catch (error: any) {
@@ -152,9 +157,11 @@ export async function DELETE(
         throw new Error("VENTA_NO_ENCONTRADA");
       }
 
+      await lockProducto(tx, existente.producto_id);
+
       await tx.venta.delete({ where: { id } });
       await recalcularProducto(tx, existente.producto_id);
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error: any) {

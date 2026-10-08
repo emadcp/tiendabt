@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       }
 
       return nuevoProducto;
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json(producto, { status: 201 });
   } catch (error) {

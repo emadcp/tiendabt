@@ -31,6 +31,7 @@ export default function Dashboard() {
     ingresos: 0,
     gastos: 0,
     costo_mercaderia: 0,
+    capital_invertido: 0,
     ganancia_neta: 0,
   });
   const [proximoLiquidar, setProximoLiquidar] = useState({
@@ -68,11 +69,20 @@ export default function Dashboard() {
         const prod = productos.find((p: any) => p?.id === v?.producto_id);
         return sum + ((parseFloat(prod?.costo_unitario_actual) || 0) * (v?.cantidad || 0));
       }, 0);
+      // Capital inmovilizado en el stock actual: lo que costó (a costo
+      // promedio ponderado histórico) todo lo que HOY sigue sin vender. Es
+      // distinto de "Costo Merc. Vendida" arriba, que mide lo YA vendido.
+      // Se incluyen todos los productos, activos o no: el capital sigue
+      // inmovilizado en el stock aunque el producto se haya desactivado.
+      const capital_invertido = productos.reduce((sum: number, p: any) => {
+        return sum + (parseFloat(p?.costo_unitario_prom) || 0) * (p?.stock_actual || 0);
+      }, 0);
 
       setMetricas({
         ingresos,
         gastos: gastos_total,
         costo_mercaderia: costo_mercat,
+        capital_invertido,
         ganancia_neta: ingresos - gastos_total - costo_mercat,
       });
       setProximoLiquidar({
@@ -99,7 +109,7 @@ export default function Dashboard() {
       setAlertasStock(productos.filter((p: any) => (p?.stock_actual || 0) <= (p?.stock_minimo || 0)));
     } catch (error) {
       console.error("Error:", error);
-      setMetricas({ ingresos: 0, gastos: 0, costo_mercaderia: 0, ganancia_neta: 0 });
+      setMetricas({ ingresos: 0, gastos: 0, costo_mercaderia: 0, capital_invertido: 0, ganancia_neta: 0 });
       setProximoLiquidar({ d7: 0, d15: 0, d21: 0, d30: 0 });
       setUltimasVentas([]);
       setAlertasStock([]);
@@ -117,7 +127,7 @@ export default function Dashboard() {
 
       <div className="flex-1 overflow-y-auto p-8 bg-white">
         {/* Métricas */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-5 gap-4 mb-8">
           <MetricCard
             label="Ingresos Totales"
             value={`$${metricas.ingresos.toLocaleString("es-AR")}`}
@@ -129,9 +139,14 @@ export default function Dashboard() {
             color="red"
           />
           <MetricCard
-            label="Costo Mercadería"
+            label="Costo Merc. Vendida"
             value={`$${metricas.costo_mercaderia.toLocaleString("es-AR")}`}
             color="orange"
+          />
+          <MetricCard
+            label="Capital Invertido en Stock"
+            value={`$${metricas.capital_invertido.toLocaleString("es-AR")}`}
+            color="purple"
           />
           <MetricCard
             label="Ganancia Neta"

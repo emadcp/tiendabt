@@ -1,9 +1,9 @@
-import { TrendingUp, Wallet, ShoppingCart, Zap } from "lucide-react";
+import { TrendingUp, Wallet, ShoppingCart, Zap, Package } from "lucide-react";
 
 interface MetricCardProps {
   label: string;
   value: string;
-  color: "green" | "red" | "blue" | "orange";
+  color: "green" | "red" | "blue" | "orange" | "purple";
 }
 
 export default function MetricCard({ label, value, color }: MetricCardProps) {
@@ -47,6 +47,16 @@ export default function MetricCard({ label, value, color }: MetricCardProps) {
       iconColor: "text-orange-600",
       accent: "bg-orange-50",
       icon: ShoppingCart,
+    },
+    purple: {
+      bg: "bg-white",
+      border: "border-slate-200",
+      accentColor: "from-purple-500/10 to-purple-500/5",
+      text: "text-slate-900",
+      label: "text-slate-600",
+      iconColor: "text-purple-600",
+      accent: "bg-purple-50",
+      icon: Package,
     },
   };
 
