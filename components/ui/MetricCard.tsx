@@ -1,9 +1,9 @@
-import { TrendingUp, Wallet, ShoppingCart, Zap, Package } from "lucide-react";
+import { TrendingUp, Wallet, ShoppingCart, Zap, Package, Truck } from "lucide-react";
 
 interface MetricCardProps {
   label: string;
   value: string;
-  color: "green" | "red" | "blue" | "orange" | "purple";
+  color: "green" | "red" | "blue" | "orange" | "purple" | "pink";
 }
 
 export default function MetricCard({ label, value, color }: MetricCardProps) {
@@ -57,6 +57,16 @@ export default function MetricCard({ label, value, color }: MetricCardProps) {
       iconColor: "text-purple-600",
       accent: "bg-purple-50",
       icon: Package,
+    },
+    pink: {
+      bg: "bg-white",
+      border: "border-slate-200",
+      accentColor: "from-pink-500/10 to-pink-500/5",
+      text: "text-slate-900",
+      label: "text-slate-600",
+      iconColor: "text-pink-600",
+      accent: "bg-pink-50",
+      icon: Truck,
     },
   };
 

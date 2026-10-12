@@ -31,6 +31,7 @@ export default function Dashboard() {
     ingresos: 0,
     gastos: 0,
     costo_mercaderia: 0,
+    gastos_venta: 0,
     capital_invertido: 0,
     ganancia_neta: 0,
   });
@@ -69,6 +70,20 @@ export default function Dashboard() {
         const prod = productos.find((p: any) => p?.id === v?.producto_id);
         return sum + ((parseFloat(prod?.costo_unitario_actual) || 0) * (v?.cantidad || 0));
       }, 0);
+      // Costos asociados directamente a cada venta: comisión del canal,
+      // envío, empaque y otros gastos puntuales. Se cargan por venta en
+      // VentaModal (y ya se restan en el ganancia_neta de cada Venta en la
+      // DB), pero el Dashboard nunca los sumaba acá: la Ganancia Neta
+      // ignoraba por completo estos costos reales de cada venta.
+      const gastos_venta = ventasActivas.reduce((sum: number, v: any) => {
+        return (
+          sum +
+          (parseFloat(v?.comision_canal) || 0) +
+          (parseFloat(v?.costo_envio) || 0) +
+          (parseFloat(v?.costo_empaque) || 0) +
+          (parseFloat(v?.otros_gastos) || 0)
+        );
+      }, 0);
       // Capital inmovilizado en el stock actual: lo que costó (a costo
       // promedio ponderado histórico) todo lo que HOY sigue sin vender. Es
       // distinto de "Costo Merc. Vendida" arriba, que mide lo YA vendido.
@@ -82,8 +97,9 @@ export default function Dashboard() {
         ingresos,
         gastos: gastos_total,
         costo_mercaderia: costo_mercat,
+        gastos_venta,
         capital_invertido,
-        ganancia_neta: ingresos - gastos_total - costo_mercat,
+        ganancia_neta: ingresos - gastos_total - costo_mercat - gastos_venta,
       });
       setProximoLiquidar({
         d7: sumarProximoALiquidar(ventasActivas, 7),
@@ -109,7 +125,7 @@ export default function Dashboard() {
       setAlertasStock(productos.filter((p: any) => (p?.stock_actual || 0) <= (p?.stock_minimo || 0)));
     } catch (error) {
       console.error("Error:", error);
-      setMetricas({ ingresos: 0, gastos: 0, costo_mercaderia: 0, capital_invertido: 0, ganancia_neta: 0 });
+      setMetricas({ ingresos: 0, gastos: 0, costo_mercaderia: 0, gastos_venta: 0, capital_invertido: 0, ganancia_neta: 0 });
       setProximoLiquidar({ d7: 0, d15: 0, d21: 0, d30: 0 });
       setUltimasVentas([]);
       setAlertasStock([]);
@@ -127,21 +143,26 @@ export default function Dashboard() {
 
       <div className="flex-1 overflow-y-auto p-8 bg-white">
         {/* Métricas */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           <MetricCard
             label="Ingresos Totales"
             value={`$${metricas.ingresos.toLocaleString("es-AR")}`}
             color="green"
           />
           <MetricCard
-            label="Gastos Totales"
-            value={`$${metricas.gastos.toLocaleString("es-AR")}`}
-            color="red"
-          />
-          <MetricCard
             label="Costo Merc. Vendida"
             value={`$${metricas.costo_mercaderia.toLocaleString("es-AR")}`}
             color="orange"
+          />
+          <MetricCard
+            label="Gastos de Venta (Envío/Comisión)"
+            value={`$${metricas.gastos_venta.toLocaleString("es-AR")}`}
+            color="pink"
+          />
+          <MetricCard
+            label="Gastos Operativos"
+            value={`$${metricas.gastos.toLocaleString("es-AR")}`}
+            color="red"
           />
           <MetricCard
             label="Capital Invertido en Stock"
