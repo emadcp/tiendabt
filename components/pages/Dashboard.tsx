@@ -14,13 +14,20 @@ function diasHasta(fechaIso: string) {
   return Math.round((fechaUTC - hoyUTC) / 86400000);
 }
 
-// Suma el subtotal de las ventas cuya acreditación cae entre hoy y "max" días.
+// Suma lo que realmente se acredita (subtotal menos comisión del canal y
+// costo de envío, que la plataforma ya descuenta antes de pagar) de las
+// ventas cuya acreditación cae entre hoy y "max" días. Antes sumaba el
+// subtotal bruto, que no es la plata que termina llegando a la cuenta.
 function sumarProximoALiquidar(ventas: any[], max: number) {
   return ventas.reduce((sum: number, v: any) => {
     if (!v?.fecha_acreditacion) return sum;
     const dias = diasHasta(v.fecha_acreditacion);
     if (dias >= 0 && dias <= max) {
-      return sum + (parseFloat(v?.subtotal) || 0);
+      const neto =
+        (parseFloat(v?.subtotal) || 0) -
+        (parseFloat(v?.comision_canal) || 0) -
+        (parseFloat(v?.costo_envio) || 0);
+      return sum + neto;
     }
     return sum;
   }, 0);
@@ -178,9 +185,12 @@ export default function Dashboard() {
 
         {/* Próximo a Liquidar */}
         <div className="mb-8">
-          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-1">
             Próximo a Liquidar
           </h3>
+          <p className="text-slate-500 text-xs mb-3">
+            Neto: ya descontada la comisión del canal y el envío
+          </p>
           <div className="grid grid-cols-4 gap-4">
             <MetricCard
               label="En 7 días"
